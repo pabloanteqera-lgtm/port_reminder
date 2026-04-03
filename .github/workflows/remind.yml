@@ -1,10 +1,9 @@
-name: Daily Portfolio Reminder
+name: Weekly Portfolio Reminder
 
 on:
   schedule:
-    # 22:16 CET = 20:16 UTC (winter) / 21:16 UTC (summer CEST)
-    # Using 20:16 UTC — adjust if needed after DST changes
-    - cron: '16 20 * * *'
+    # Friday 22:16 CET = 20:16 UTC (winter) / 20:16 UTC (summer CEST)
+    - cron: '16 20 * * 5'
   workflow_dispatch: # allows manual trigger for testing
 
 jobs:
