@@ -1,0 +1,22 @@
+name: Daily Portfolio Reminder
+
+on:
+  schedule:
+    # 22:16 CET = 20:16 UTC (winter) / 21:16 UTC (summer CEST)
+    # Using 20:16 UTC — adjust if needed after DST changes
+    - cron: '16 20 * * *'
+  workflow_dispatch: # allows manual trigger for testing
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram reminder
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          TEXT="US market closed. Time to log your portfolio values!%0A%0AReply with three values (one per line):%0A  DEGIRO%0A  XTB%0A  Renta4%0A%0AExample:%0A12500%0A8300%0A5200"
+          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -d chat_id="${CHAT_ID}" \
+            -d text="${TEXT}"

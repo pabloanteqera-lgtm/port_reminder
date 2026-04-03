@@ -1,0 +1,21 @@
+# Config (contains Telegram bot token)
+config.yaml
+
+# Data files (contain personal portfolio values)
+portfolio_data.xlsx
+dashboard.html
+
+# Telegram state
+.telegram_offset
+
+# Pixi environment
+.pixi/
+pixi.lock
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+Thumbs.db
+.DS_Store
