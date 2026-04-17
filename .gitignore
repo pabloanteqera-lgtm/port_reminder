@@ -1,5 +1,9 @@
-# Config (contains Telegram bot token)
+# Config (contains Telegram bot token — excluded from git)
 config.yaml
+
+# Secrets — never commit these
+credentials.json
+.env
 
 # Data files (contain personal portfolio values)
 portfolio_data.xlsx

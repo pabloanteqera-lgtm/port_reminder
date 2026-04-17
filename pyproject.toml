@@ -1,0 +1,32 @@
+[project]
+name = "portfolio-tracker"
+requires-python = ">= 3.11"
+version = "0.1.0"
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.dependencies]
+python = ">=3.11"
+yfinance = "*"
+pandas = "*"
+openpyxl = "*"
+pyyaml = "*"
+matplotlib = "*"
+pyinstaller = "*"
+
+[tool.pixi.pypi-dependencies]
+customtkinter = "*"
+flask = "*"
+gspread = "*"
+google-auth = "*"
+
+[tool.pixi.tasks]
+fetch = "python tracker.py fetch"
+dash = "python tracker.py dash"
+update = "python tracker.py update"
+add = "python tracker.py add"
+viewer = "python viewer.py"
+serve = "python server.py"
+build-exe = "pyinstaller --onefile --noconsole --name PortfolioViewer --add-data config.yaml;. --add-data portfolio_data.xlsx;. viewer.py"
