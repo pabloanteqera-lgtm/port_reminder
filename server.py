@@ -44,12 +44,12 @@ if _env_file.exists():
             key, val = line.split("=", 1)
             os.environ.setdefault(key.strip(), val.strip())
 
-# Load config — from config.yaml or APP_CONFIG env var (for cloud deployment)
+# Load config — from config.yaml or APP_CONFIG env var (JSON, for cloud deployment)
 _config_path = _root / "config.yaml"
 if _config_path.exists():
     CFG = yaml.safe_load(_config_path.read_text())
 elif os.environ.get("APP_CONFIG"):
-    CFG = yaml.safe_load(os.environ["APP_CONFIG"])
+    CFG = json.loads(os.environ["APP_CONFIG"])
 else:
     raise RuntimeError("No config.yaml found and APP_CONFIG env var not set")
 BROKERS = CFG["brokers"]
