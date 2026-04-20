@@ -1,0 +1,23 @@
+brokers:
+- name: DEGIRO
+  type: manual
+  currency: EUR
+- name: XTB
+  type: manual
+  currency: EUR
+- name: Renta4
+  type: manual
+  currency: EUR
+- name: trade republic
+  type: manual
+  currency: EUR
+benchmarks:
+- ticker: SXR8.DE
+  label: S&P 500
+- ticker: EXXT.DE
+  label: NASDAQ
+- ticker: EUNL.DE
+  label: MSCI World
+base_currency: EUR
+data_file: portfolio_data.xlsx
+dashboard_file: dashboard.html
