@@ -23,11 +23,16 @@ from pathlib import Path
 import yaml
 from flask import Flask, Response
 
-from viewer.data.compute import (
-    compute_portfolio_totals,
-    compute_portfolio_returns,
-    compute_bench_returns,
-)
+# Import compute functions directly to avoid pulling in desktop GUI dependencies
+# (viewer/__init__.py imports customtkinter/matplotlib which aren't on the server)
+import importlib.util
+_compute_path = Path(__file__).resolve().parent / "viewer" / "data" / "compute.py"
+_spec = importlib.util.spec_from_file_location("compute", _compute_path)
+_compute = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_compute)
+compute_portfolio_totals = _compute.compute_portfolio_totals
+compute_portfolio_returns = _compute.compute_portfolio_returns
+compute_bench_returns = _compute.compute_bench_returns
 
 # Load .env if present
 _root = Path(__file__).resolve().parent
