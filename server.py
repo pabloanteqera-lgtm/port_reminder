@@ -379,13 +379,26 @@ function getColor(label, i) {{
 }}
 
 // ── Returns chart ──────────────────────
+function rebaseSeries(filtered, key) {{
+    // Rebase so the first non-null value in the visible range = 0%
+    const raw = filtered.map(r => r[key] ?? null);
+    let baseVal = null;
+    for (const v of raw) {{
+        if (v !== null) {{ baseVal = v; break; }}
+    }}
+    if (baseVal === null) return raw;
+    // rebase: (1 + current) / (1 + base) - 1, then back to percentage
+    return raw.map(v => v === null ? null :
+        ((1 + v/100) / (1 + baseVal/100) - 1) * 100);
+}}
+
 function buildReturnsChart(days) {{
     const filtered = days > 0 ? returnsData.slice(-days) : returnsData;
     const labels = filtered.map(r => r.date);
     const datasets = [];
     datasets.push({{
         label: 'Portfolio',
-        data: filtered.map(r => r.Portfolio ?? null),
+        data: rebaseSeries(filtered, 'Portfolio'),
         borderColor: getColor('Portfolio', 0),
         backgroundColor: 'transparent',
         borderWidth: 2.5, pointRadius: 0, tension: 0.3,
@@ -393,7 +406,7 @@ function buildReturnsChart(days) {{
     benchLabels.forEach((l, i) => {{
         datasets.push({{
             label: l,
-            data: filtered.map(r => r[l] ?? null),
+            data: rebaseSeries(filtered, l),
             borderColor: getColor(l, i+1),
             backgroundColor: 'transparent',
             borderWidth: 1.8, pointRadius: 0, tension: 0.3,
