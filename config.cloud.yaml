@@ -18,6 +18,8 @@ benchmarks:
   label: MSCI World
 - ticker: BTC-USD
   label: Bitcoin
+- ticker: LUTR.L
+  label: US Treasury 10Y+
 base_currency: EUR
 data_file: portfolio_data.xlsx
 dashboard_file: dashboard.html

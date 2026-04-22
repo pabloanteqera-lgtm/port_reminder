@@ -397,6 +397,7 @@ const COLORS = {{
     'NASDAQ':   '#FC8181',
     'MSCI World':'#B794F4',
     'Bitcoin':  '#F6AD55',
+    'US Treasury 10Y+': '#68D391',
 }};
 const FALLBACK = ['#68D391','#F6E05E','#FEB2B2','#C4B5FD','#76E4F7'];
 

@@ -13,6 +13,7 @@ DARK = {
     "NASDAQ": "#F0A050",
     "MSCI": "#A78BFA",
     "BTC": "#5B8DEF",
+    "BOND": "#40C090",
 }
 
 LIGHT = {
@@ -28,6 +29,7 @@ LIGHT = {
     "NASDAQ": "#E08A30",
     "MSCI": "#8B6FD0",
     "BTC": "#4A7BDF",
+    "BOND": "#30A870",
 }
 
 SERIES_COLORS = {
@@ -35,6 +37,7 @@ SERIES_COLORS = {
     "NASDAQ": "NASDAQ",
     "MSCI World": "MSCI",
     "Bitcoin": "BTC",
+    "US Treasury 10Y+": "BOND",
 }
 
 DEFAULT_COLOR = "MUTED"
