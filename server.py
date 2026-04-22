@@ -261,6 +261,7 @@ footer {{ text-align:center; color:#4A5568; font-size:11px; margin-top:40px; pad
 
 /* ── Mobile responsive ── */
 @media (max-width: 640px) {{
+    .desktop-only {{ display:none; }}
     .container {{ padding:16px 12px; }}
 
     header {{
@@ -338,16 +339,16 @@ footer {{ text-align:center; color:#4A5568; font-size:11px; margin-top:40px; pad
   </div>
 </div>
 
-<!-- Broker Allocation Chart -->
-<div class="section">
+<!-- Broker Allocation Chart (hidden on mobile) -->
+<div class="section desktop-only">
   <div class="section-title">Broker Allocation</div>
   <div class="chart-box" style="max-width:420px">
     <canvas id="allocationChart" height="280"></canvas>
   </div>
 </div>
 
-<!-- Data Table -->
-<div class="section">
+<!-- Data Table (hidden on mobile) -->
+<div class="section desktop-only">
   <div class="section-title">Daily Returns Log</div>
   <div class="table-wrap">
     <table id="returnsTable">
