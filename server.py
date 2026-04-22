@@ -394,9 +394,9 @@ const brokerNames = {ctx["brokers_json"]};
 
 const COLORS = {{
     Portfolio: '#63B3ED',
-    'S&P 500':  '#F6AD55',
     'NASDAQ':   '#FC8181',
     'MSCI World':'#B794F4',
+    'Bitcoin':  '#F6AD55',
 }};
 const FALLBACK = ['#68D391','#F6E05E','#FEB2B2','#C4B5FD','#76E4F7'];
 

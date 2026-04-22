@@ -12,12 +12,12 @@ brokers:
   type: manual
   currency: EUR
 benchmarks:
-- ticker: SXR8.DE
-  label: S&P 500
 - ticker: EXXT.DE
   label: NASDAQ
 - ticker: EUNL.DE
   label: MSCI World
+- ticker: BTC-USD
+  label: Bitcoin
 base_currency: EUR
 data_file: portfolio_data.xlsx
 dashboard_file: dashboard.html
