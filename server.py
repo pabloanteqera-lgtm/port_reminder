@@ -427,7 +427,7 @@ function buildReturnsChart(days) {{
         data: rebaseSeries(filtered, 'Portfolio'),
         borderColor: getColor('Portfolio', 0),
         backgroundColor: 'transparent',
-        borderWidth: 2.5, pointRadius: 0, tension: 0.3,
+        borderWidth: 2.5, pointRadius: 0, tension: 0.3, spanGaps: true,
     }});
     benchLabels.forEach((l, i) => {{
         datasets.push({{
@@ -435,7 +435,7 @@ function buildReturnsChart(days) {{
             data: rebaseSeries(filtered, l),
             borderColor: getColor(l, i+1),
             backgroundColor: 'transparent',
-            borderWidth: 1.8, pointRadius: 0, tension: 0.3,
+            borderWidth: 1.8, pointRadius: 0, tension: 0.3, spanGaps: true,
             borderDash: [6, 3],
         }});
     }});
