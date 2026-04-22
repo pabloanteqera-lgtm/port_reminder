@@ -123,6 +123,21 @@ def _get_dashboard_data():
     )
     latest_ret = returns_rows[-1] if returns_rows else {}
 
+    # Weekly change per broker and total
+    week_change = {}
+    total_week_change = 0
+    if len(port_rows) >= 2:
+        # Find the row ~5 trading days ago (or the earliest available)
+        week_idx = max(0, len(port_rows) - 6)
+        week_ago = port_rows[week_idx]
+        for name in broker_names:
+            curr = latest.get(name, 0)
+            prev = week_ago.get(name, 0)
+            week_change[name] = ((curr - prev) / prev * 100) if prev else 0
+        curr_total = latest.get("Total", 0)
+        prev_total = week_ago.get("Total", 0)
+        total_week_change = ((curr_total - prev_total) / prev_total * 100) if prev_total else 0
+
     return {
         "returns_json": json.dumps(returns_rows),
         "portfolio_json": json.dumps(port_rows),
@@ -130,6 +145,8 @@ def _get_dashboard_data():
         "brokers_json": json.dumps(broker_names),
         "latest_total": latest_total,
         "total_return": total_return,
+        "total_week_change": total_week_change,
+        "week_change": week_change,
         "latest_ret": latest_ret,
         "bench_labels": bench_labels,
         "broker_names": broker_names,
@@ -153,14 +170,20 @@ def _render_dashboard(ctx):
     broker_cards = ""
     for name in ctx["broker_names"]:
         v = ctx["latest"].get(name, 0)
+        wk = ctx["week_change"].get(name, 0)
+        wk_sign = "+" if wk >= 0 else ""
+        wk_color = "#48BB78" if wk >= 0 else "#F56565"
         broker_cards += f"""
         <div class="card">
             <div class="card-label">{name}</div>
-            <div class="card-value">\u20ac{v:,.0f}</div>
+            <div class="card-value">\u20ac{v:,.0f} <span class="card-week" style="color:{wk_color}">{wk_sign}{wk:.1f}%</span></div>
         </div>"""
 
     port_sign = "+" if ctx["total_return"] >= 0 else ""
     port_color = "#48BB78" if ctx["total_return"] >= 0 else "#F56565"
+    wk_total = ctx["total_week_change"]
+    wk_total_sign = "+" if wk_total >= 0 else ""
+    wk_total_color = "#48BB78" if wk_total >= 0 else "#F56565"
     today = datetime.date.today().isoformat()
 
     return f"""<!DOCTYPE html>
@@ -215,6 +238,8 @@ h1 {{
     color:#718096; margin-bottom:6px; }}
 .card-value {{ font-size:20px; font-weight:600;
     font-family:'JetBrains Mono',monospace; }}
+.card-week {{ font-size:12px; font-weight:500; }}
+.week-badge {{ font-size:13px; font-weight:500; }}
 
 /* Sections */
 .section {{ margin-bottom:40px; }}
@@ -307,7 +332,7 @@ footer {{ text-align:center; color:#4A5568; font-size:11px; margin-top:40px; pad
   </div>
   <div class="header-right">
     <div class="total-value">\u20ac{ctx["latest_total"]:,.0f}</div>
-    <div class="total-return">{port_sign}{ctx["total_return"]:.2f}% cumulative return</div>
+    <div class="total-return">{port_sign}{ctx["total_return"]:.2f}% cumulative <span class="week-badge" style="color:{wk_total_color}">({wk_total_sign}{wk_total:.1f}% this week)</span></div>
   </div>
 </header>
 
