@@ -101,18 +101,28 @@ def _use_sheets():
 
 
 def _get_save_functions():
-    """Return the appropriate save functions based on backend."""
-    if _use_sheets():
-        import sheets
-        broker_names = [b["name"] for b in BROKERS]
+    """Always write to Excel (UI reads it); also write to Sheets if configured."""
+    from viewer.data.excel_io import (
+        save_portfolio_values as excel_save_pv,
+        save_cashflow as excel_save_cf,
+    )
 
-        def save_pv(date, values):
-            return sheets.save_portfolio_values(date, values, broker_names)
+    if not _use_sheets():
+        return excel_save_pv, excel_save_cf
 
-        return save_pv, sheets.save_cashflow
-    else:
-        from viewer.data.excel_io import save_portfolio_values, save_cashflow
-        return save_portfolio_values, save_cashflow
+    import sheets
+    broker_names = [b["name"] for b in BROKERS]
+
+    def save_pv(date, values):
+        total = excel_save_pv(date, values)
+        sheets.save_portfolio_values(date, values, broker_names)
+        return total
+
+    def save_cf(date, broker, amount, flow_type):
+        excel_save_cf(date, broker, amount, flow_type)
+        sheets.save_cashflow(date, broker, amount, flow_type)
+
+    return save_pv, save_cf
 
 
 def fetch_and_save():
