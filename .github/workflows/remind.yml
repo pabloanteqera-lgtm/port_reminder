@@ -2,20 +2,33 @@ name: Weekly Portfolio Reminder
 
 on:
   schedule:
-    # Friday 22:16 CET = 20:16 UTC (winter) / 20:16 UTC (summer CEST)
+    # Friday 22:16 Europe/Madrid year-round.
+    # CEST (summer, UTC+2) → 20:16 UTC; CET (winter, UTC+1) → 21:16 UTC.
+    # Both fire; the job only sends when the Madrid hour is 22.
     - cron: '16 20 * * 5'
+    - cron: '16 21 * * 5'
   workflow_dispatch: # allows manual trigger for testing
 
 jobs:
   remind:
     runs-on: ubuntu-latest
     steps:
+      - name: Check Madrid hour
+        id: check
+        run: |
+          HOUR=$(TZ=Europe/Madrid date +%H)
+          if [ "$HOUR" = "22" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Send Telegram reminder
+        if: steps.check.outputs.run == 'true'
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          TEXT="US market closed. Time to log your portfolio values!%0A%0AReply with three values (one per line):%0A  DEGIRO%0A  XTB%0A  Renta4%0A%0AExample:%0A12500%0A8300%0A5200"
+          TEXT="US market closed. Time to log your portfolio values!%0A%0AReply with four values (one per line):%0A  DEGIRO%0A  XTB%0A  Renta4%0A  trade republic%0A%0AExample:%0A12500%0A8300%0A5200%0A4100"
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d text="${TEXT}"
