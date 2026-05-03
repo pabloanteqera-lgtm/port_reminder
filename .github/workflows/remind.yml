@@ -4,7 +4,7 @@ on:
   schedule:
     # Friday 22:16 Europe/Madrid year-round.
     # CEST (summer, UTC+2) → 20:16 UTC; CET (winter, UTC+1) → 21:16 UTC.
-    # Both fire; the job only sends when the Madrid hour is 22.
+    # Both fire; the job only sends on the one matching the current DST offset.
     - cron: '16 20 * * 5'
     - cron: '16 21 * * 5'
   workflow_dispatch: # allows manual trigger for testing
@@ -13,11 +13,19 @@ jobs:
   remind:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Madrid hour
+      - name: Pick the cron matching current Madrid DST
         id: check
+        # GitHub Actions can delay scheduled runs by 30-60 min, so checking the
+        # current hour is unreliable. Match the triggering cron expression to
+        # the current Madrid UTC offset instead.
         run: |
-          HOUR=$(TZ=Europe/Madrid date +%H)
-          if [ "$HOUR" = "22" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          OFFSET=$(TZ=Europe/Madrid date +%z)
+          SCHED="${{ github.event.schedule }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$OFFSET" = "+0200" ] && [ "$SCHED" = "16 20 * * 5" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$OFFSET" = "+0100" ] && [ "$SCHED" = "16 21 * * 5" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
