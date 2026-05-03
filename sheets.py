@@ -173,6 +173,11 @@ def load_cashflows():
 
 def save_portfolio_values(date, values_dict, broker_names):
     """Save broker values for a given date to Google Sheets."""
+    # Markets are closed on weekends — snap weekend entries to the prior
+    # Friday so they line up with benchmark data.
+    if date.weekday() >= 5:
+        date -= datetime.timedelta(days=date.weekday() - 4)
+
     ss = _get_sheet()
     ws = ss.worksheet("Portfolio")
     rows = ws.get_all_values()
