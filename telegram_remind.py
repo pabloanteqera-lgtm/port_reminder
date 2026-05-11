@@ -2,6 +2,10 @@
 """Send a daily Telegram reminder to enter portfolio values. Run via Task Scheduler."""
 
 from pathlib import Path
+
+import truststore
+truststore.inject_into_ssl()
+
 import yaml
 import urllib.request
 import urllib.parse

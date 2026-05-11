@@ -1,0 +1,51 @@
+name: Process Telegram Replies
+
+on:
+  schedule:
+    # Every 30 min Fri/Sat/Sun (covers weekend reply window).
+    # GitHub Actions can delay scheduled runs by 30-60 min under load, so
+    # the cadence absorbs that without growing the window too much.
+    - cron: '*/30 * * * 5,6,0'
+  workflow_dispatch:
+
+# Avoid overlapping runs that could double-process the same update.
+concurrency:
+  group: telegram-fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: pip install pyyaml gspread google-auth openpyxl truststore
+
+      # Persist the Telegram update_id offset across runs so we don't
+      # re-send confirmations for messages already processed.
+      - name: Restore offset cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .telegram_offset
+          key: telegram-offset-${{ github.run_id }}
+          restore-keys: telegram-offset-
+
+      - name: Fetch and save
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python telegram_fetch.py
+
+      - name: Save offset cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .telegram_offset
+          key: telegram-offset-${{ github.run_id }}

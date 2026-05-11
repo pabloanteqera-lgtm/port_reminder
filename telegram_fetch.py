@@ -7,6 +7,12 @@ Called by the viewer on launch.
 import datetime, json, os, re
 from pathlib import Path
 
+# Use the OS-native cert store for SSL validation. On this Windows box an
+# intercepting AV/firewall CA fails OpenSSL's strict Basic Constraints check;
+# truststore validates via the Windows API, which accepts it.
+import truststore
+truststore.inject_into_ssl()
+
 import yaml
 import urllib.request
 import urllib.parse
@@ -22,10 +28,24 @@ if _env_file.exists():
             key, val = line.split("=", 1)
             os.environ.setdefault(key.strip(), val.strip())
 
-CFG = yaml.safe_load((ROOT / "config.yaml").read_text())
-TOKEN = CFG["telegram"]["bot_token"]
-CHAT_ID = CFG["telegram"]["chat_id"]
+# config.yaml holds the Telegram secrets locally. In cloud (no config.yaml)
+# fall back to config.cloud.yaml + env vars (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID).
+_config_path = ROOT / "config.yaml"
+if _config_path.exists():
+    CFG = yaml.safe_load(_config_path.read_text())
+else:
+    CFG = yaml.safe_load((ROOT / "config.cloud.yaml").read_text())
+
+_tg = CFG.get("telegram", {})
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN") or _tg.get("bot_token")
+_chat_id_env = os.environ.get("TELEGRAM_CHAT_ID")
+CHAT_ID = int(_chat_id_env) if _chat_id_env else _tg.get("chat_id")
 BROKERS = CFG["brokers"]
+
+if not TOKEN or not CHAT_ID:
+    raise RuntimeError(
+        "Telegram credentials missing: set them in config.yaml or via "
+        "TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env vars.")
 
 OFFSET_FILE = ROOT / ".telegram_offset"
 
@@ -101,25 +121,40 @@ def _use_sheets():
 
 
 def _get_save_functions():
-    """Always write to Excel (UI reads it); also write to Sheets if configured."""
-    from viewer.data.excel_io import (
-        save_portfolio_values as excel_save_pv,
-        save_cashflow as excel_save_cf,
-    )
+    """Write to Excel (for the desktop UI) and Sheets (if configured).
+
+    In headless environments (e.g. GitHub Actions runner) the viewer package
+    can't be imported because of GUI deps — fall back to Sheets-only.
+    """
+    try:
+        from viewer.data.excel_io import (
+            save_portfolio_values as excel_save_pv,
+            save_cashflow as excel_save_cf,
+        )
+    except ImportError:
+        excel_save_pv = excel_save_cf = None
 
     if not _use_sheets():
+        if excel_save_pv is None:
+            raise RuntimeError(
+                "No storage backend available: Excel imports failed and "
+                "GOOGLE_SHEET_ID is not set.")
         return excel_save_pv, excel_save_cf
 
     import sheets
     broker_names = [b["name"] for b in BROKERS]
 
     def save_pv(date, values):
-        total = excel_save_pv(date, values)
+        if excel_save_pv:
+            total = excel_save_pv(date, values)
+        else:
+            total = sum(values.values())
         sheets.save_portfolio_values(date, values, broker_names)
         return total
 
     def save_cf(date, broker, amount, flow_type):
-        excel_save_cf(date, broker, amount, flow_type)
+        if excel_save_cf:
+            excel_save_cf(date, broker, amount, flow_type)
         sheets.save_cashflow(date, broker, amount, flow_type)
 
     return save_pv, save_cf

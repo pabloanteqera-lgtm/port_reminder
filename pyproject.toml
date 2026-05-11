@@ -21,6 +21,7 @@ customtkinter = "*"
 flask = "*"
 gspread = "*"
 google-auth = "*"
+truststore = "*"
 
 [tool.pixi.tasks]
 fetch = "python tracker.py fetch"
