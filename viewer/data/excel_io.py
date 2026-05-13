@@ -116,10 +116,11 @@ def fetch_benchmarks():
 
 def save_portfolio_values(date, values_dict):
     """Save broker values for a given date to Excel."""
-    # Markets are closed on weekends — snap weekend entries to the prior
-    # Friday so they line up with benchmark data.
-    if date.weekday() >= 5:
-        date -= datetime.timedelta(days=date.weekday() - 4)
+    # Markets are closed Sat/Sun, and the weekly reminder fires Friday night —
+    # so replies arriving Sat/Sun/Mon all reflect Friday's close. Snap to the
+    # prior Friday so they line up with benchmark data.
+    if date.weekday() in (0, 5, 6):
+        date -= datetime.timedelta(days=(date.weekday() - 4) % 7)
 
     _ensure_workbook()
     wb = load_workbook(DATA_FILE)
