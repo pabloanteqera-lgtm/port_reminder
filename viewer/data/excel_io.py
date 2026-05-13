@@ -96,8 +96,12 @@ def fetch_benchmarks():
     if isinstance(close.columns, pd.MultiIndex):
         close.columns = close.columns.droplevel(0)
 
-    # Resample to weekly (Friday close) to match existing weekly data
+    # Resample to weekly (Friday close) to match existing weekly data.
+    # resample labels each period with its Friday end-date, so a partial
+    # current week gets stamped with an upcoming Friday — drop those.
     close = close.resample("W-FRI").last().dropna(how="all")
+    today = datetime.date.today()
+    close = close[close.index.date <= today]
 
     count = 0
     for dt_idx, row_data in close.iterrows():
