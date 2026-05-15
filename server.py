@@ -123,13 +123,12 @@ def _get_dashboard_data():
     )
     latest_ret = returns_rows[-1] if returns_rows else {}
 
-    # Weekly change per broker and total
+    # Weekly change per broker and total. Portfolio data is one row per
+    # Friday close, so the previous row is the previous week.
     week_change = {}
     total_week_change = 0
     if len(port_rows) >= 2:
-        # Find the row ~5 trading days ago (or the earliest available)
-        week_idx = max(0, len(port_rows) - 6)
-        week_ago = port_rows[week_idx]
+        week_ago = port_rows[-2]
         for name in broker_names:
             curr = latest.get(name, 0)
             prev = week_ago.get(name, 0)
@@ -420,7 +419,17 @@ function rebaseSeries(filtered, key) {{
 }}
 
 function buildReturnsChart(days) {{
-    const filtered = days > 0 ? returnsData.slice(-days) : returnsData;
+    // Filter by date, not row count — data is weekly so slice(-30) would
+    // grab the last 30 weeks instead of the last 30 days.
+    let filtered;
+    if (days > 0) {{
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - days);
+        const cutoffStr = cutoff.toISOString().slice(0, 10);
+        filtered = returnsData.filter(r => r.date >= cutoffStr);
+    }} else {{
+        filtered = returnsData;
+    }}
     const labels = filtered.map(r => r.date);
     const datasets = [];
     datasets.push({{
